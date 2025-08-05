@@ -1,0 +1,55 @@
+VerificationExcellence/SystemVerilogReference
+
+Contains examples and sample short projects for learning basic functional verification concepts using SystemVerilog GitHubGitHub
+GitHub: https://github.com/VerificationExcellence/SystemVerilogReference
+Download: git clone https://github.com/VerificationExcellence/SystemVerilogReference.git
+
+
+ChipsAlliance SV-Tests
+
+Test suite designed to check compliance with the SystemVerilog standard GitHub - chipsalliance/sv-tests: Test suite designed to check compliance with the SystemVerilog standard.
+GitHub: https://github.com/chipsalliance/sv-tests
+Download: git clone https://github.com/chipsalliance/sv-tests.git
+
+
+Ethernet 10GE MAC SystemVerilog Testbench
+
+Professional SystemVerilog testbench for an Ethernet 10GE MAC core with complete verification environment Simple example of RTL verilog design and simple testbench · GitHub
+GitHub: https://github.com/andres-mancera/ethernet_10ge_mac_SV_tb
+Download: git clone https://github.com/andres-mancera/ethernet_10ge_mac_SV_tb.git
+
+
+Simple SystemVerilog Testbenches
+
+SystemVerilog testbench collection for simple designs testbenches · GitHub Topics · GitHub
+GitHub: https://github.com/darthsider/SystemVerilog
+Download: git clone https://github.com/darthsider/SystemVerilog.git
+
+
+
+📚 Learning Resources:
+
+ChipVerify Examples
+
+Basic SystemVerilog and Verilog testbench examples including 4-bit counter, Full Adder, Single Port RAM ChipVerifyChipVerify
+Website: https://www.chipverify.com/systemverilog/systemverilog-simple-testbench
+Examples: https://www.chipverify.com/verilog/verilog-testbench
+
+
+Verification Guide
+
+SystemVerilog TestBench architecture guide with classes for generating stimulus, driving, monitoring SystemVerilog TestBench - Verification Guide
+Website: https://verificationguide.com/systemverilog/systemverilog-testbench/
+
+
+EDA Playground
+
+Online simulator where you can edit, save, simulate SystemVerilog, Verilog, VHDL from your web browser SystemVerilog TestBench Example code
+Website: https://www.edaplayground.com/
+
+
+
+🔍 Browse More Options:
+
+GitHub Testbench Topics: https://github.com/topics/testbench?l=systemverilog
+SystemVerilog Test Bench Topics: https://github.com/topics/systemverilog-test-bench

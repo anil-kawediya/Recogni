@@ -1,0 +1,434 @@
+#!/bin/bash
+#==============================================================================
+# Synopsys Tools Launcher Script
+# Supports: Design Compiler, SpyGlass, RTL Architect, Fusion Compiler
+# Author: Auto-generated launcher script
+# Version: 1.0
+#==============================================================================
+# Built In Features:
+# System Checks - Disk space, memory, license connectivity
+# Error Handling - Path validation and tool availability
+# Logging - All sessions logged to ~/synopsys_logs/
+# Color Output - Easy-to-read status messages
+# X11 Detection - Warns about GUI compatibility in SSH sessions
+# Version Support - Handles different tool versions via environment variables
+
+
+# Script configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_NAME="$(basename "$0")"
+LOG_DIR="${HOME}/synopsys_logs"
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+
+# Color codes for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+
+#==============================================================================
+# CONFIGURATION SECTION - MODIFY THESE PATHS FOR YOUR ENVIRONMENT
+#==============================================================================
+
+# Synopsys installation root (modify as needed)
+export SYNOPSYS_ROOT="/tools/synopsys"
+
+# Tool-specific installation paths
+export DC_ROOT="${SYNOPSYS_ROOT}/syn/S-${DC_VERSION:-2023.12}"
+export SPYGLASS_ROOT="${SYNOPSYS_ROOT}/spyglass/T-${SPYGLASS_VERSION:-2022.09}"
+export RTL_ARCHITECT_ROOT="${SYNOPSYS_ROOT}/rtl_architect/T-${RTL_ARCHITECT_VERSION:-2022.12}"
+export FC_ROOT="${SYNOPSYS_ROOT}/fc/T-${FC_VERSION:-2022.12}"
+
+# License server configuration
+export SNPSLMD_LICENSE_FILE="27020@license-server1:27020@license-server2:27020@license-server3"
+export LM_LICENSE_FILE="${SNPSLMD_LICENSE_FILE}"
+
+# Alternative license file path (if using license files instead of server)
+# export SNPSLMD_LICENSE_FILE="/path/to/synopsys.lic"
+
+# Common Synopsys environment variables
+export SYNOPSYS="${SYNOPSYS_ROOT}"
+export SYNPLIFY_PATH="${SYNOPSYS_ROOT}/fpga"
+
+# Technology library paths (customize for your libraries)
+export TECH_LIB_ROOT="/libraries"
+export DB_LIB_PATH="${TECH_LIB_ROOT}/db"
+export MW_LIB_PATH="${TECH_LIB_ROOT}/mw"
+export TF_LIB_PATH="${TECH_LIB_ROOT}/tf"
+export NDM_LIB_PATH="${TECH_LIB_ROOT}/ndm"
+
+#==============================================================================
+# UTILITY FUNCTIONS
+#==============================================================================
+
+# Print colored messages
+print_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
+print_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
+print_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+print_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
+print_header() { echo -e "${CYAN}$1${NC}"; }
+
+# Create log directory
+create_log_dir() {
+    if [[ ! -d "$LOG_DIR" ]]; then
+        mkdir -p "$LOG_DIR"
+        print_info "Created log directory: $LOG_DIR"
+    fi
+}
+
+# Check if path exists
+check_path() {
+    local path="$1"
+    local name="$2"
+    if [[ -d "$path" ]]; then
+        print_success "$name found at: $path"
+        return 0
+    else
+        print_error "$name not found at: $path"
+        return 1
+    fi
+}
+
+# Check license connectivity
+check_license() {
+    print_info "Checking license server connectivity..."
+    
+    # Extract license servers from SNPSLMD_LICENSE_FILE
+    local servers=$(echo "$SNPSLMD_LICENSE_FILE" | tr ':' '\n' | grep '@' | cut -d'@' -f2 | sort -u)
+    
+    for server in $servers; do
+        if ping -c 1 -W 2 "$server" >/dev/null 2>&1; then
+            print_success "License server $server is reachable"
+        else
+            print_warn "License server $server is not reachable"
+        fi
+    done
+    
+    # Test license checkout (if lmutil is available)
+    if command -v lmutil >/dev/null 2>&1; then
+        print_info "Testing license checkout..."
+        if lmutil lmstat -c "$SNPSLMD_LICENSE_FILE" -f | grep -q "Users of"; then
+            print_success "License server is responding"
+        else
+            print_warn "License server check failed"
+        fi
+    fi
+}
+
+# Setup common environment
+setup_common_env() {
+    print_header "Setting up common Synopsys environment..."
+    
+    # Create log directory
+    create_log_dir
+    
+    # Library search paths
+    export SYNOPSYS_DC_SETUP_PATH="${PWD}:${HOME}/.synopsys_dc.setup"
+    
+    # Memory and performance settings
+    export DC_SHELL_PS1="dc_shell> "
+    export SYNOPSYS_SYN_ROOT="$DC_ROOT"
+    
+    # Display settings for GUI tools
+    if [[ -z "$DISPLAY" ]]; then
+        export DISPLAY=":0.0"
+        print_warn "DISPLAY not set, using default :0.0"
+    fi
+    
+    # Temporary directory
+    export TMPDIR="${TMPDIR:-/tmp}"
+    
+    # Setup PATH
+    export PATH="${DC_ROOT}/bin:${SPYGLASS_ROOT}/bin:${RTL_ARCHITECT_ROOT}/bin:${FC_ROOT}/bin:$PATH"
+    
+    print_info "Common environment setup complete"
+}
+
+#==============================================================================
+# TOOL-SPECIFIC LAUNCH FUNCTIONS
+#==============================================================================
+
+launch_design_compiler() {
+    print_header "Launching Design Compiler..."
+    
+    # Check installation
+    if ! check_path "$DC_ROOT" "Design Compiler"; then
+        return 1
+    fi
+    
+    # Design Compiler specific environment
+    export DC_ROOT
+    export SYNOPSYS_DC_SETUP="${HOME}/.synopsys_dc.setup"
+    
+    # Memory settings
+    export DC_EXEC_64BIT=true
+    export DC_USE_UNIFIED_MEMORY=true
+    
+    # Log file
+    local log_file="${LOG_DIR}/dc_${TIMESTAMP}.log"
+    
+    print_info "Design Compiler log: $log_file"
+    print_info "Starting Design Compiler..."
+    
+    # Launch options
+    local dc_cmd="dc_shell"
+    local dc_args=""
+    
+    case "${1:-shell}" in
+        "gui"|"design_vision")
+            dc_cmd="design_vision"
+            dc_args="-64bit"
+            ;;
+        "shell")
+            dc_cmd="dc_shell"
+            dc_args="-64bit"
+            ;;
+        "batch")
+            dc_cmd="dc_shell"
+            dc_args="-64bit -f ${2:-run.tcl}"
+            ;;
+    esac
+    
+    print_info "Executing: $dc_cmd $dc_args"
+    $dc_cmd $dc_args 2>&1 | tee "$log_file"
+}
+
+launch_spyglass() {
+    print_header "Launching SpyGlass..."
+    
+    # Check installation
+    if ! check_path "$SPYGLASS_ROOT" "SpyGlass"; then
+        return 1
+    fi
+    
+    # SpyGlass specific environment
+    export SPYGLASS_HOME="$SPYGLASS_ROOT"
+    export SG_ROOT="$SPYGLASS_ROOT"
+    
+    # Methodology files
+    export METHODOLOGY_ROOT="${SPYGLASS_ROOT}/GuideWare/latest/Methodology"
+    
+    # Log file
+    local log_file="${LOG_DIR}/spyglass_${TIMESTAMP}.log"
+    
+    print_info "SpyGlass log: $log_file"
+    print_info "Starting SpyGlass..."
+    
+    # Launch options
+    case "${1:-gui}" in
+        "gui")
+            print_info "Launching SpyGlass GUI..."
+            spyglass -gui 2>&1 | tee "$log_file" &
+            ;;
+        "batch")
+            local prj_file="${2:-project.prj}"
+            print_info "Running SpyGlass batch mode with project: $prj_file"
+            spyglass -batch -project "$prj_file" 2>&1 | tee "$log_file"
+            ;;
+        "shell")
+            print_info "Launching SpyGlass shell..."
+            spyglass -shell 2>&1 | tee "$log_file"
+            ;;
+    esac
+}
+
+launch_rtl_architect() {
+    print_header "Launching RTL Architect..."
+    
+    # Check installation
+    if ! check_path "$RTL_ARCHITECT_ROOT" "RTL Architect"; then
+        return 1
+    fi
+    
+    # RTL Architect specific environment
+    export RTL_ARCHITECT_HOME="$RTL_ARCHITECT_ROOT"
+    export RTLA_HOME="$RTL_ARCHITECT_ROOT"
+    
+    # Log file
+    local log_file="${LOG_DIR}/rtl_architect_${TIMESTAMP}.log"
+    
+    print_info "RTL Architect log: $log_file"
+    print_info "Starting RTL Architect..."
+    
+    # Launch options
+    case "${1:-gui}" in
+        "gui")
+            print_info "Launching RTL Architect GUI..."
+            rtl_architect -gui 2>&1 | tee "$log_file" &
+            ;;
+        "shell")
+            print_info "Launching RTL Architect shell..."
+            rtl_architect 2>&1 | tee "$log_file"
+            ;;
+        "batch")
+            local script_file="${2:-run.tcl}"
+            print_info "Running RTL Architect batch mode with script: $script_file"
+            rtl_architect -f "$script_file" 2>&1 | tee "$log_file"
+            ;;
+    esac
+}
+
+launch_fusion_compiler() {
+    print_header "Launching Fusion Compiler..."
+    
+    # Check installation
+    if ! check_path "$FC_ROOT" "Fusion Compiler"; then
+        return 1
+    fi
+    
+    # Fusion Compiler specific environment
+    export FC_HOME="$FC_ROOT"
+    export FUSION_COMPILER_HOME="$FC_ROOT"
+    
+    # NDM library path
+    export FUSION_COMPILER_NDM_PATH="$NDM_LIB_PATH"
+    
+    # Log file
+    local log_file="${LOG_DIR}/fusion_compiler_${TIMESTAMP}.log"
+    
+    print_info "Fusion Compiler log: $log_file"
+    print_info "Starting Fusion Compiler..."
+    
+    # Launch options
+    case "${1:-shell}" in
+        "gui")
+            print_info "Launching Fusion Compiler GUI..."
+            fc_shell -gui 2>&1 | tee "$log_file" &
+            ;;
+        "shell")
+            print_info "Launching Fusion Compiler shell..."
+            fc_shell 2>&1 | tee "$log_file"
+            ;;
+        "batch")
+            local script_file="${2:-run.tcl}"
+            print_info "Running Fusion Compiler batch mode with script: $script_file"
+            fc_shell -f "$script_file" 2>&1 | tee "$log_file"
+            ;;
+    esac
+}
+
+#==============================================================================
+# SYSTEM CHECKS
+#==============================================================================
+
+perform_system_checks() {
+    print_header "Performing system checks..."
+    
+    # Check disk space
+    local disk_usage=$(df -h "$PWD" | awk 'NR==2 {print $5}' | sed 's/%//')
+    if [[ $disk_usage -gt 90 ]]; then
+        print_warn "Disk usage is high: ${disk_usage}%"
+    else
+        print_info "Disk usage: ${disk_usage}%"
+    fi
+    
+    # Check memory
+    local mem_info=$(free -h | awk '/^Mem/ {print $3 "/" $2}')
+    print_info "Memory usage: $mem_info"
+    
+    # Check license
+    check_license
+    
+    # Check X11 forwarding for GUI tools
+    if [[ -n "$SSH_CLIENT" ]] && [[ -z "$DISPLAY" ]]; then
+        print_warn "SSH session detected but DISPLAY not set - GUI tools may not work"
+        print_info "Try: ssh -X username@hostname"
+    fi
+}
+
+#==============================================================================
+# MAIN SCRIPT LOGIC
+#==============================================================================
+
+show_usage() {
+    cat << EOF
+Usage: $SCRIPT_NAME [TOOL] [MODE] [ARGS]
+
+TOOLS:
+    dc          Design Compiler
+    sg          SpyGlass  
+    rtla        RTL Architect
+    fc          Fusion Compiler
+    check       System checks only
+    env         Show environment variables
+
+MODES:
+    gui         Launch GUI mode (default for SpyGlass, RTL Architect)
+    shell       Launch shell mode (default for DC, FC)
+    batch       Launch batch mode with script file
+
+EXAMPLES:
+    $SCRIPT_NAME dc gui                    # Launch Design Vision
+    $SCRIPT_NAME dc shell                  # Launch DC Shell
+    $SCRIPT_NAME dc batch run.tcl          # Run DC batch with script
+    $SCRIPT_NAME sg gui                    # Launch SpyGlass GUI
+    $SCRIPT_NAME sg batch project.prj     # Run SpyGlass batch
+    $SCRIPT_NAME rtla gui                  # Launch RTL Architect GUI
+    $SCRIPT_NAME fc shell                  # Launch Fusion Compiler shell
+    $SCRIPT_NAME check                     # Perform system checks
+    $SCRIPT_NAME env                       # Show environment
+
+ENVIRONMENT VARIABLES TO CUSTOMIZE:
+    SYNOPSYS_ROOT          - Root installation path
+    SNPSLMD_LICENSE_FILE   - License server configuration
+    DC_VERSION            - Design Compiler version
+    SPYGLASS_VERSION      - SpyGlass version
+    RTL_ARCHITECT_VERSION - RTL Architect version  
+    FC_VERSION            - Fusion Compiler version
+
+EOF
+}
+
+show_environment() {
+    print_header "Synopsys Environment Variables:"
+    echo "SYNOPSYS_ROOT: $SYNOPSYS_ROOT"
+    echo "DC_ROOT: $DC_ROOT"
+    echo "SPYGLASS_ROOT: $SPYGLASS_ROOT"
+    echo "RTL_ARCHITECT_ROOT: $RTL_ARCHITECT_ROOT"
+    echo "FC_ROOT: $FC_ROOT"
+    echo "SNPSLMD_LICENSE_FILE: $SNPSLMD_LICENSE_FILE"
+    echo "PATH: $PATH"
+    echo "LOG_DIR: $LOG_DIR"
+}
+
+main() {
+    # Setup common environment
+    setup_common_env
+    
+    # Parse command line arguments
+    local tool="${1:-help}"
+    local mode="${2:-default}"
+    local args="${3:-}"
+    
+    case "$tool" in
+        "dc"|"design_compiler")
+            launch_design_compiler "$mode" "$args"
+            ;;
+        "sg"|"spyglass")
+            launch_spyglass "$mode" "$args"
+            ;;
+        "rtla"|"rtl_architect")
+            launch_rtl_architect "$mode" "$args"
+            ;;
+        "fc"|"fusion_compiler")
+            launch_fusion_compiler "$mode" "$args"
+            ;;
+        "check")
+            perform_system_checks
+            ;;
+        "env")
+            show_environment
+            ;;
+        "help"|"-h"|"--help"|*)
+            show_usage
+            ;;
+    esac
+}
+
+# Execute main function if script is run directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

@@ -1,0 +1,130 @@
+tool_setup [TOOL] [MODE] [ADDITIONAL_ARGS]
+
+
+TOOL Parameters (Required):
+ParameterToolDescriptiondcDesign CompilerSynthesis toolsgSpyGlassStatic verificationrtlaRTL ArchitectRTL analysis & optimizationfcFusion CompilerPhysical synthesischeckSystem CheckValidate environmentenvEnvironmentShow all variables
+2. MODE Parameters (Optional):
+ModeDescriptionAvailable ForguiGraphical interfaceAll toolsshellInteractive command lineAll toolsbatchRun script fileAll tools
+3. ADDITIONAL_ARGS (Optional):
+
+For batch mode: specify script filename
+For SpyGlass batch: specify project file
+
+💡 Practical Examples:
+Design Compiler Examples:
+bash# Launch Design Vision (GUI)
+./synopsys_launcher.sh dc gui
+
+# Launch DC Shell (command line)  
+./synopsys_launcher.sh dc shell
+
+# Run batch script
+./synopsys_launcher.sh dc batch synthesis_script.tcl
+
+# Default mode (shell)
+./synopsys_launcher.sh dc
+SpyGlass Examples:
+bash# Launch SpyGlass GUI
+./synopsys_launcher.sh sg gui
+
+# Run batch with project file
+./synopsys_launcher.sh sg batch my_project.prj
+
+# Launch SpyGlass shell
+./synopsys_launcher.sh sg shell
+
+# Default mode (GUI)
+./synopsys_launcher.sh sg
+RTL Architect Examples:
+bash# Launch RTL Architect GUI
+./synopsys_launcher.sh rtla gui
+
+# Launch RTL Architect shell
+./synopsys_launcher.sh rtla shell
+
+# Run batch script
+./synopsys_launcher.sh rtla batch optimization.tcl
+Fusion Compiler Examples:
+bash# Launch Fusion Compiler GUI
+./synopsys_launcher.sh fc gui
+
+# Launch FC Shell (default)
+./synopsys_launcher.sh fc shell
+
+# Run batch script
+./synopsys_launcher.sh fc batch place_route.tcl
+System Utilities:
+bash# Check system status, licenses, disk space
+./synopsys_launcher.sh check
+
+# Show all environment variables
+./synopsys_launcher.sh env
+
+# Show help
+./synopsys_launcher.sh help
+./synopsys_launcher.sh -h
+./synopsys_launcher.sh --help
+⚙️ Environment Variable Override:
+You can override default settings using environment variables:
+bash# Use different version
+DC_VERSION=2024.03 ./synopsys_launcher.sh dc gui
+
+# Use different installation path
+SYNOPSYS_ROOT=/opt/synopsys ./synopsys_launcher.sh sg gui
+
+# Use different license server
+SNPSLMD_LICENSE_FILE="27020@my-server" ./synopsys_launcher.sh fc shell
+🔧 Common Usage Patterns:
+Daily Workflow:
+bash# Morning setup - check everything is working
+./synopsys_launcher.sh check
+
+# Start design work
+./synopsys_launcher.sh dc gui
+
+# Run lint checks
+./synopsys_launcher.sh sg batch lint_project.prj
+
+# Physical implementation
+./synopsys_launcher.sh fc gui
+Automated Flows:
+bash# Create a synthesis flow
+./synopsys_launcher.sh dc batch synthesis_flow.tcl
+
+# Run multiple tools in sequence
+./synopsys_launcher.sh sg batch lint.prj && \
+./synopsys_launcher.sh dc batch synth.tcl && \
+./synopsys_launcher.sh fc batch pnr.tcl
+Remote Server Usage:
+bash# SSH with X11 forwarding for GUI tools
+ssh -X username@server
+
+# Check if X11 is working
+./synopsys_launcher.sh check
+
+# Launch GUI tool
+./synopsys_launcher.sh dc gui
+📝 Log Files:
+All sessions are automatically logged to:
+bash~/synopsys_logs/
+├── dc_20241201_143022.log          # Design Compiler session
+├── spyglass_20241201_143525.log    # SpyGlass session  
+├── rtl_architect_20241201_144012.log # RTL Architect session
+└── fusion_compiler_20241201_144523.log # Fusion Compiler session
+🚨 Error Handling:
+The script will warn you about:
+
+Missing tool installations
+License server connectivity issues
+Disk space problems
+Missing X11 forwarding for GUI tools
+Invalid parameters
+
+Quick Reference Card:
+bash# Most common commands:
+./synopsys_launcher.sh dc gui        # Design Vision
+./synopsys_launcher.sh dc shell      # DC Shell  
+./synopsys_launcher.sh sg gui        # SpyGlass GUI
+./synopsys_launcher.sh rtla gui      # RTL Architect
+./synopsys_launcher.sh fc shell      # Fusion Compiler
+./synopsys_launcher.sh check         # System check
