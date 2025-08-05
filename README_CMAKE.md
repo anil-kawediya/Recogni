@@ -48,68 +48,46 @@ Recogni/
 
 Ninja is significantly faster than Make for builds. To install:
 
-```bash
-# macOS with Homebrew:
-brew install ninja
-
-# Ubuntu/Debian:
-sudo apt-get install ninja-build
-
-# CentOS/RHEL:
-sudo yum install ninja-build
-
-# Fedora:
-sudo dnf install ninja-build
-
-# Check if installed:
-ninja --version
-```
+# macOS with Homebrew:  brew install ninja
+# Ubuntu/Debian: 	sudo apt-get install ninja-build
+# CentOS/RHEL:  	sudo yum install ninja-build
+# Fedora: 		sudo dnf install ninja-build
+# Check if installed: 	ninja --version
 
 ## Quick Start
 
 ### 1. Check Dependencies
-```bash
 ./build.sh deps
-```
 
 ### 2. Create Build Directory
-```bash
 ./build.sh setup
-```
 
 For debug build:
-```bash
 ./build.sh setup --debug
-```
 
 ### 3. Build All Testbenches (Fast with Ninja!)
-```bash
 ./build.sh build
-```
 
 ### 4. Run Complete VCS Flow
-```bash
 ./build.sh vcs
-```
 
 ## Available Build Targets
 
-| Target | Description |
-|--------|-------------|
+| Target                  | Description |
+|-------------------------|-------------|
 | `build_all_testbenches` | Compile all C/C++ testbenches in tb/ directory |
-| `vcs_flow` | Run complete VCS flow (compile + simulate) |
-| `vcs_compile_only` | VCS compilation only (no simulation) |
-| `vcs_simulate_only` | VCS simulation only (assumes already compiled) |
-| `clean_vcs` | Clean VCS generated files |
-| `clean_logs` | Clean all log files |
-| `clean_generated` | Clean generated stimulus/config files |
-| `clean_all` | Clean everything (build + VCS + logs + generated) |
-| `help_targets` | Display all available targets |
+| `vcs_flow`              | Run complete VCS flow (compile + simulate) |
+| `vcs_compile_only`      | VCS compilation only (no simulation) |
+| `vcs_simulate_only`     | VCS simulation only (assumes already compiled) |
+| `clean_vcs`             | Clean VCS generated files |
+| `clean_logs`            | Clean all log files |
+| `clean_generated`       | Clean generated stimulus/config files |
+| `clean_all`             | Clean everything (build + VCS + logs + generated) |
+| `help_targets`          | Display all available targets |
 
 ### Running Individual Targets
 
 **Using the build script (recommended):**
-```bash
 # Check dependencies and build tools
 ./build.sh deps
 
@@ -129,10 +107,8 @@ For debug build:
 
 # Show help
 ./build.sh help
-```
 
 **Direct cleanup script usage:**
-```bash
 # Interactive cleanup with confirmation
 ./clean.sh --all             # Clean everything
 ./clean.sh --logs            # Clean only logs
@@ -147,24 +123,19 @@ For debug build:
 
 # Combine options
 ./clean.sh --logs --generated --temp  # Clean multiple categories
-```
 
 **Manual CMake/Ninja commands:**
-```bash
 cd build
 ninja build_all_testbenches  # Fast!
 ninja vcs_flow               # Complete flow
 ninja vcs_compile_only       # VCS compile only
 ninja vcs_simulate_only      # VCS simulate only
 ninja clean_vcs             # Clean VCS outputs
-```
 
 **If using Make (slower):**
-```bash
 cd build
 make build_all_testbenches  # Slower than Ninja
 make vcs_flow               # Complete flow
-```
 
 ## Testbench Development
 
@@ -176,8 +147,6 @@ make vcs_flow               # Complete flow
 4. **Naming**: Each source file creates an executable with the same base name
 
 ### Example Testbench Structure
-
-```cpp
 // tb/my_testbench.cpp
 #include <iostream>
 
@@ -191,7 +160,6 @@ int main() {
     
     return 0; // Success
 }
-```
 
 ### Testbench Integration with VCS
 
@@ -202,12 +170,10 @@ The testbenches should:
 4. Log execution details
 
 Example stimulus file creation:
-```cpp
 std::ofstream stimulus("tb/stimulus_my_test.txt");
 stimulus << "// Test vectors\n";
 stimulus << "vector_data_0x1234\n";
 stimulus.close();
-```
 
 ## VCS Flow Integration
 
@@ -232,18 +198,13 @@ The CMake system integrates with the existing `vcs_flow.tcl` script:
 ### Environment Variables
 
 Set these environment variables to customize behavior:
-
-```bash
 # Enable VCS cleanup after simulation
 export VCS_CLEANUP=1
-
 # Set custom build type
 export CMAKE_BUILD_TYPE=Debug
-
 # Force use of specific build tool
 export CMAKE_GENERATOR=Ninja        # Use Ninja (default if available)
 export CMAKE_GENERATOR="Unix Makefiles"  # Force Make
-```
 
 ## Cleanup Management
 
@@ -261,8 +222,6 @@ The project includes comprehensive cleanup functionality to manage all generated
 | **Everything** | All of the above | `./clean.sh --all` |
 
 ### Safe Cleanup Workflow
-
-```bash
 # 1. Preview what will be cleaned (safe)
 ./clean.sh --dry-run --all
 
@@ -272,11 +231,9 @@ The project includes comprehensive cleanup functionality to manage all generated
 
 # 3. Complete cleanup when needed
 ./clean.sh --all                 # Clean everything
-```
 
 ### Integration with Build System
 
-```bash
 # Build script includes cleanup shortcuts
 ./build.sh clean-logs          # Quick log cleanup
 ./build.sh clean-vcs           # Quick VCS cleanup  
@@ -295,14 +252,12 @@ ninja clean_all
 - **Make**: Traditional but slower for larger projects
 
 **Recommended Usage:**
-```bash
 # Fastest - Ninja with parallel jobs
 ./build.sh build --jobs $(nproc)
 
 # Force Make if needed
 ./build.sh setup --make
 ./build.sh build
-```
 
 ## Troubleshooting
 
@@ -324,7 +279,6 @@ ninja clean_all
 
 ### Debug Commands
 
-```bash
 # Verbose CMake output
 cmake --build . --verbose
 
@@ -336,30 +290,22 @@ cmake .. -DCMAKE_VERBOSE_MAKEFILE=ON
 
 # Manual VCS flow
 tclsh vcs_flow.tcl
-```
 
 ## Advanced Usage
 
 ### Custom Testbench Arguments
 
-```bash
 # Run specific testbench with arguments
 ./build/testbenches/processor_testbench custom_test_name
-```
 
 ### Parallel Builds
 
-```bash
 # Use multiple cores for compilation
 make -j4 build_all_testbenches
-```
 
 ### Installation
-
-```bash
 # Install binaries and scripts
 make install
-```
 
 ## Output Files
 
