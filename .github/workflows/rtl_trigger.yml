@@ -55,7 +55,7 @@ jobs:
     - name: Run Ansible playbook
       run: |
         ansible-playbook -i inventory.ini playbook.yml \
-          --extra-vars "script_path=./your_script.py"
+          --extra-vars "script_path=./process_rtl.py"
           
     - name: Clean up
       run: |
