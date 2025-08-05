@@ -1,7 +1,6 @@
 `timescale 1ns / 1ps
 
 // ANIL 
-// ANIL
 
 module CPUtop(
         input clk,
