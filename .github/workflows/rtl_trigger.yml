@@ -1,0 +1,62 @@
+name: RTL File Processing with Ansible
+
+on:
+  push:
+    paths:
+      - '**.rtl'
+  pull_request:
+    paths:
+      - '**.rtl'
+
+jobs:
+  process-rtl-files:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+        
+    - name: Install Ansible
+      run: |
+        python -m pip install --upgrade pip
+        pip install ansible
+        
+    - name: Create Ansible inventory
+      run: |
+        echo "[local]" > inventory.ini
+        echo "localhost ansible_connection=local" >> inventory.ini
+        
+    - name: Create Ansible playbook
+      run: |
+        cat > playbook.yml << 'EOF'
+        ---
+        - hosts: local
+          gather_facts: false
+          tasks:
+            - name: Run Python script for RTL processing
+              command: /usr/bin/python3 {{ script_path | default('process_rtl.py') }}
+              register: script_output
+              
+            - name: Display script output
+              debug:
+                msg: "{{ script_output.stdout }}"
+                
+            - name: Display script errors (if any)
+              debug:
+                msg: "{{ script_output.stderr }}"
+              when: script_output.stderr != ""
+        EOF
+        
+    - name: Run Ansible playbook
+      run: |
+        ansible-playbook -i inventory.ini playbook.yml \
+          --extra-vars "script_path=./your_script.py"
+          
+    - name: Clean up
+      run: |
+        rm -f inventory.ini playbook.yml
