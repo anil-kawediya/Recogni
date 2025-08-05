@@ -1,0 +1,10 @@
+/Users/anil/Projects/Recogni/build/CMakeFiles/processor_testbench.dir
+/Users/anil/Projects/Recogni/build/CMakeFiles/example_testbench.dir
+/Users/anil/Projects/Recogni/build/CMakeFiles/build_all_testbenches.dir
+/Users/anil/Projects/Recogni/build/CMakeFiles/vcs_flow.dir
+/Users/anil/Projects/Recogni/build/CMakeFiles/clean_vcs.dir
+/Users/anil/Projects/Recogni/build/CMakeFiles/clean_logs.dir
+/Users/anil/Projects/Recogni/build/CMakeFiles/clean_generated.dir
+/Users/anil/Projects/Recogni/build/CMakeFiles/clean_all.dir
+/Users/anil/Projects/Recogni/build/CMakeFiles/edit_cache.dir
+/Users/anil/Projects/Recogni/build/CMakeFiles/rebuild_cache.dir

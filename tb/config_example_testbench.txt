@@ -1,0 +1,5 @@
+# Test configuration for example_testbench
+test_duration=1000ns
+clock_period=10ns
+reset_duration=50ns
+stimulus_file=tb/stimulus_example_testbench.txt
