@@ -95,7 +95,20 @@ show_usage() {
 # Default values
 BUILD_TYPE="Release"
 VERBOSE=""
-JOBS=""
+
+# Auto-detect number of CPU cores for parallel jobs
+if command -v nproc &> /dev/null; then
+    # Linux
+    DEFAULT_JOBS=$(nproc)
+elif command -v sysctl &> /dev/null; then
+    # macOS
+    DEFAULT_JOBS=$(sysctl -n hw.ncpu)
+else
+    # Fallback
+    DEFAULT_JOBS=4
+fi
+
+JOBS="-j$DEFAULT_JOBS"  # Default to all available cores
 BUILD_DIR="build"
 BUILD_TOOL="ninja"  # Default to ninja
 BUILD_GENERATOR="Ninja"
@@ -187,6 +200,15 @@ case $COMMAND in
             print_warning "VCS not found in PATH"
         fi
         
+        # Show CPU and parallelism info
+        if command -v sysctl &> /dev/null; then
+            CPU_CORES=$(sysctl -n hw.ncpu)
+            CPU_MODEL=$(sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "Unknown")
+            print_info "Detected CPU: $CPU_MODEL"
+            print_info "Available cores: $CPU_CORES"
+            print_info "Default parallel jobs: $DEFAULT_JOBS"
+        fi
+        
         print_success "Dependency check completed!"
         ;;
         
@@ -227,6 +249,7 @@ case $COMMAND in
         fi
         
         cd "$BUILD_DIR"
+        print_info "Building all testbenches with $BUILD_TOOL using $JOBS..."
         if [[ "$BUILD_TOOL" == "ninja" ]]; then
             ninja $JOBS build_all_testbenches
         else
@@ -247,6 +270,7 @@ case $COMMAND in
         fi
         
         cd "$BUILD_DIR"
+        print_info "Running VCS flow with $BUILD_TOOL using $JOBS..."
         if [[ "$BUILD_TOOL" == "ninja" ]]; then
             ninja $JOBS vcs_flow
         else
