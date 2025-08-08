@@ -36,11 +36,15 @@ file(MAKE_DIRECTORY ${SIM_DIR}/work)
 file(MAKE_DIRECTORY ${SIM_DIR}/reports)
 
 # Find testbench source files
-file(GLOB_RECURSE C_TESTBENCHES "${TB_DIR}/*.c")
-file(GLOB_RECURSE CXX_TESTBENCHES "${TB_DIR}/*.cpp")
+file(GLOB_RECURSE C_TESTBENCHES_SRC "${TB_DIR}/*.c")
+file(GLOB_RECURSE CXX_TESTBENCHES_SRC "${TB_DIR}/*.cpp")
+
+# Lists to collect target names
+set(C_TESTBENCH_TARGETS "")
+set(CXX_TESTBENCH_TARGETS "")
 
 # Build C testbenches
-foreach(testbench_src ${C_TESTBENCHES})
+foreach(testbench_src ${C_TESTBENCHES_SRC})
     get_filename_component(testbench_name ${testbench_src} NAME_WE)
     add_executable(${testbench_name} ${testbench_src})
     set_target_properties(${testbench_name} 
@@ -50,10 +54,13 @@ foreach(testbench_src ${C_TESTBENCHES})
     
     # Set compiler flags for this target
     target_compile_options(${testbench_name} PRIVATE -Wall -Wextra)
+    
+    # Add to target list
+    list(APPEND C_TESTBENCH_TARGETS ${testbench_name})
 endforeach()
 
 # Build C++ testbenches
-foreach(testbench_src ${CXX_TESTBENCHES})
+foreach(testbench_src ${CXX_TESTBENCHES_SRC})
     get_filename_component(testbench_name ${testbench_src} NAME_WE)
     add_executable(${testbench_name} ${testbench_src})
     set_target_properties(${testbench_name} 
@@ -63,11 +70,14 @@ foreach(testbench_src ${CXX_TESTBENCHES})
     
     # Set compiler flags for this target
     target_compile_options(${testbench_name} PRIVATE -Wall -Wextra)
+    
+    # Add to target list
+    list(APPEND CXX_TESTBENCH_TARGETS ${testbench_name})
 endforeach()
 
 # Create a target to build all testbenches
 add_custom_target(build_all_testbenches
-    DEPENDS ${C_TESTBENCHES} ${CXX_TESTBENCHES}
+    DEPENDS ${C_TESTBENCH_TARGETS} ${CXX_TESTBENCH_TARGETS}
     COMMENT "Building all testbenches"
 )
 

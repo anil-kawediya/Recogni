@@ -1,5 +1,0 @@
-# ninja log v7
-1	217	1754438698584716482	CMakeFiles/processor_testbench.dir/tb/processor_testbench.c.o	fe8b268d902290e
-218	286	1754438698801389981	testbenches/processor_testbench	fb3d33c02339d8b7
-2	975	1754438698584972989	CMakeFiles/example_testbench.dir/tb/example_testbench.cpp.o	22d5175885c5636b
-977	1039	1754438699560820471	testbenches/example_testbench	85693234e014981e

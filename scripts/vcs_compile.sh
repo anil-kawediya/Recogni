@@ -4,7 +4,7 @@
 set -e
 
 echo "Running VCS compilation only..."
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 
 tclsh << 'EOF'
 source vcs_flow.tcl
