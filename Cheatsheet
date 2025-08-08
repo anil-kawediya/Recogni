@@ -1,0 +1,88 @@
+
+
+Clean Up:
+ find . -name "*.o" -o -name "*.d" -o -name "*.log" -o -name "stimulus_*" -o -name "config_*" -o -name "build.ninja" -o -name "CMakeCache.txt"
+>  ./clean.sh --all
+>  ls -la build/ 2>/dev/null || echo "build directory removed"
+>  ls -la logs/testbenches logs/vcs 2>/dev/null || echo "logs directory removed"
+>  ls -la sim 2>/dev/null || echo "sim directory removed"
+
+ ---->> REMOVE build/ *.o *.d *.log stimulus_* config_* CMakeCache.txt
+
+rm -rf build logs/testbenches/* logs/vcs/* sim/work/* sim/logs/* sim/reports/*
+rm -f tb/stimulus_* tb/config_* simv* *.log *.daidir *.key
+rm -rf build
+ls -la | grep -E "(build|logs)"
+ls -la | grep -E "(build|logs|sim)"
+ls -la logs/ sim/
+ls -la tb/stimulus_* tb/config_* 2>/dev/null || echo "No generated stimulus/config files (clean state)"
+rm -f tb/stimulus_* tb/config_*
+
+====== START UP ==============
+
+STEP 1: DEPENDENCY CHECK 
+	./build.sh deps
+
+The deps command performs a complete system check and reports:
+Build System Dependencies
+	CMake: Checks if CMake is installed (required)
+	Build Tool: Detects Ninja (preferred) or Make (fallback)
+	Reports: Which build system will be used and why
+VCS Dependencies
+	Tcl: Checks for tclsh (required for VCS flow)
+	VCS: Checks if Synopsys VCS is available and reports version
+System Information
+	CPU Model: Shows your processor type (Apple M1, etc.)
+	Core Count: Shows available CPU cores
+	Parallelism: Shows default parallel job count for builds
+
+STEP 2: CMAKE SETUP 
+	./build.sh setup
+
+Build Environment Initialization
+	Creates Build Infrastructure
+	Build Directory: Creates build/ directory if it doesn't exist
+	Log Directories: Creates organized logging structure:
+	testbenches - For testbench compilation logs
+	vcs - For VCS-specific logs
+	reports, logs, work - For simulation outputs
+CMake Configuration
+	Generator Selection: Configures CMake with Ninja generator (fast parallel builds)
+	Build Type: Sets up Release or Debug build configuration
+	Project Setup: Runs cmake -G "Ninja" -DCMAKE_BUILD_TYPE="Release" ..
+
+STEP 3: BUILD/COMPILE ALL TESTBENCHES
+	./build.sh build
+Compilation Process
+	Build Tool: Uses Ninja (or Make as fallback) for parallel compilation
+	Target: Builds the build_all_testbenches target from CMake
+	Parallelism: Uses 8 parallel jobs (-j8) on your Apple M1
+	Location: Compiles in the build directory
+What Gets Built
+	processor_testbench.c → Executable in testbenches
+	example_testbench.cpp → Executable in testbenches
+Ninja Speed Advantage
+	Fast: 2-5x faster than traditional Make
+	Parallel: Utilizes all 8 cores of your Apple M1
+	Smart: Only rebuilds what changed
+
+STEP 4: VERIFY BUILD.NINJA ; EXECUTABLES 
+	ls -la build/build.ninja 
+	ls -la build/testbenches/ && file build/testbenches/*
+
+STEP 5: GENERATE STIMULUS FILES
+	./build/testbenches/processor_testbench
+	./build/testbenches/example_testbench
+	ls -la tb/stimulus_* tb/config_* && echo && ls -la logs/testbenches/
+Stimulus files:
+	Provides test vectors. RTL needs inputs
+	Input signals to process
+	Test patterns to exercise different scenarios
+	Edge cases to verify correct behavior
+
+echo "=== SAMPLE STIMULUS CONTENT ===" && head -8 tb/stimulus_processor_testbench.txt
+echo "=== STEP 9: VCS FLOW (DRY RUN) ===" && cd build && ninja -n vcs_flow
+ninja -t commands vcs_flow
+echo "=== STEP 10: TEST CUSTOM JOB COUNT ===" && ./build.sh build --jobs 4
+echo "=== STEP 11: TEST CLEANUP ===" && ./clean.sh --logs
+echo "=== FINAL STATUS CHECK ===" && echo "Build artifacts:" && ls -la build/testbenches/ && echo && echo "Generated files:" && ls -la tb/stimulus_* tb/config_* && echo && echo "Logs (should be empty):" && ls -la logs/testbenches/
